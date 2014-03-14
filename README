@@ -1,0 +1,20 @@
+VORTEX Renderer :
+OpenGL Renderer for teaching and experiments
+created on February, 11th, 2011 -- Mathias Paulin
+
+I) Directory structure
+I.1) external
+ this directory conntains external dependencies for the vortexrenderer.
+ They must be limited to the strict minimu and are until now :
+ 	assimp : Asset import Library
+ 	assimp is a library to import various file formats. (DAE, OBJ, …)
+ 	see http://assimp.sourceforge.net/
+ 	
+ 	glm : GL Mathematics
+ 	A C++ mathematics library for graphics programming
+ 	see http://glm.g-truc.net/
+ 	
+ 	
+ I.2) src
+  This directory contains the main source code for the vortex renderer project :
+  

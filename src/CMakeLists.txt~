@@ -1,0 +1,23 @@
+# OpenGL Iniitalisation on MacosX
+if(APPLE)
+add_subdirectory(macoscoreprofileselector)
+endif(APPLE)
+
+# Vortex engine
+add_subdirectory(engine)
+
+# renderer
+#add_subdirectory(matrenderer)
+#add_subdirectory(matrenderer/raytracer)
+
+#add_subdirectory(gui)
+#add_subdirectory(rtr-tp1)
+#add_subdirectory(raytrace)
+#add_subdirectory(mass-spring)
+#add_subdirectory(stereotoon)
+#add_subdirectory(rtr-2013)
+add_subdirectory(basic)
+#add_subdirectory(tessellation)
+#add_subdirectory(parametric)
+#add_subdirectory(simpleTessDemo)
+#add_subdirectory(latticeboltzman)
