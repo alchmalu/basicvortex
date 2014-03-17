@@ -1,5 +1,5 @@
 precision highp float; // needed only for version 1.30
-#extension GL_ARB_explicit_attrib_location : enable
+//#extension GL_ARB_explicit_attrib_location : enable
 
 uniform float ambientIntensity;
 uniform vec3 Ka;
@@ -7,8 +7,8 @@ uniform vec3 Ka;
 in vec3 varNormal;
 in vec4 varTexCoord;
 
-layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec4 outNormal;
+out vec4 outColor;
+out vec4 outNormal;
 
 uniform samplerCube uniEnvMap;
 uniform vec3 Ks;
