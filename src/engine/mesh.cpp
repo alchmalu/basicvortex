@@ -143,7 +143,7 @@ void Mesh::drawPatch()
     GLenum mode = GL_PATCHES;
     GLint count = mNumIndices;
     void *indices = NULL;
-    glAssert(glPatchParameteri(GL_PATCH_VERTICES, 3));
+    //glAssert(glPatchParameteri(GL_PATCH_VERTICES, 3));
     glAssert(glDrawElements(mode, count, type, indices));
 #endif
 }

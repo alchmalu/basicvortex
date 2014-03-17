@@ -135,7 +135,7 @@ void ShaderObject::load(std::string fileName)
 #ifdef __APPLE__
     fullCode[0] = "#version 150\n#define __APPLE__\n";
 #else
-    fullCode[0] = "#version 400\n";
+    fullCode[0] = "#version 130\n";
 #endif
     fullCode[1] = mConfigurationString.c_str();
     fullCode[2] = code;
