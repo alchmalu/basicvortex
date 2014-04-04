@@ -1,5 +1,5 @@
 // Vertex Shader – file "default.vert"
-//#extension GL_ARB_uniform_buffer_object : enable
+#extension GL_ARB_uniform_buffer_object : enable
 
 uniform	mat4 MVP;
 

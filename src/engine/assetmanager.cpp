@@ -174,8 +174,8 @@ ShaderProgram *AssetManager::getShaderProgram(const ShaderConfiguration &configu
         theProgram->link();
         shadersOK = shadersOK && theProgram->check();
         if (shadersOK) {
-            //           std::cerr << "Adding Programm ..." << std::endl;
-            //            std::cerr << "AssetManager::getShaderProgram AJOUT de " << configuration << std::endl;
+           // std::cerr << "Adding Programm ..." << std::endl;
+           // std::cerr << "AssetManager::getShaderProgram AJOUT de " << configuration << std::endl;
             int numShader = addShaderProgram(theProgram);
             mConfiguredPrograms[configuration] = numShader;
             return theProgram;

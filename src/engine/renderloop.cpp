@@ -67,7 +67,6 @@ bool MaterialState::operator< (const MaterialState &other) const {
 }
 
 
-
 //-------------------------------------------------------------------------------
 // TransformState
 //-------------------------------------------------------------------------------
@@ -87,7 +86,6 @@ void TransformState::bind() const {
 }
 
 void TransformState::bind(const glm::mat4x4 &modelviewMatrix, const glm::mat4x4 &projectionMatrix) const {
-
     glm::mat4x4 mv = modelviewMatrix*mModelView;
     glm::mat4x4 mvp = projectionMatrix * mv;
     glm::mat4x4 mnormal = glm::transpose(glm::inverse(mv));

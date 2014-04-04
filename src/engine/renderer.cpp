@@ -160,7 +160,6 @@ void SelectionRenderer::setViewport(int width, int height)
 
 void SelectionRenderer::pick(int x, int y)
 {
-
     // activate fbo
     mFBO.useAsTarget(mWidth, mHeight);
     mFBO.clear(FBO::ALL);// to clear all attached texture

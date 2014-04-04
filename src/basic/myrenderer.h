@@ -71,6 +71,7 @@ public:
     void drawScreenQuad() { mScreenQuad->draw(); }
     void reloadShaders();
 
+    void renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
 private:
     /// Textures for all the rendering steps
     vortex::Texture * mTextures[NUM_TEXTURE];
@@ -114,6 +115,8 @@ private:
     vortex::MaterialPropertyFilter *mAmbientAndNormalFilter;
     vortex::MaterialPropertyFilter *mDepthFilter;
 
+
+
 #ifdef STATISTIQUES
     unsigned int queryRenderID[4];
 #endif
@@ -123,6 +126,32 @@ private:
     // render loops
     vortex::ShaderLoop mMainDrawLoop;
     vortex::ShaderLoop mAmbientAndNormalLoop;
+
+
+    /*
+     ***********************************
+     * PICKING
+     ***********************************
+     */
+
+    int mPickingShaderId;
+
+    class MeshVectorBuilder : public vortex::SceneGraph::VisitorOperation {
+    public:
+        typedef std::vector<vortex::Mesh::MeshPtr> MeshVector;
+
+        MeshVectorBuilder(vortex::SceneGraph *sceneGraph, MeshVector *meshes);
+        void operator()(vortex::SceneGraph::Node *theNode);
+    private:
+        vortex::SceneGraph *mSceneGraph;
+        MeshVector *mMeshes;
+    };
+
+    MeshVectorBuilder::MeshVector mPickingMeshes;
+
+    glm::vec4 idToColor(int id);
+    int colorToId(int r, int g, int b);
+
 };
 
 #endif // MATRENDERER_H

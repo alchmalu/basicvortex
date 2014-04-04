@@ -117,6 +117,7 @@ SceneGraph::Visitor::NullAction SceneGraph::Visitor::mNullAction;
 
 void SceneGraph::PreOrderVisitor::run(SceneGraph::Node *theNode)
 {
+    //std::cout << "fdp" << std::endl;
     if (theNode->acceptVisitors()){
         mAction(theNode);
         if (!theNode->isLeaf()) {

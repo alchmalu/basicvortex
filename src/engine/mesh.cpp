@@ -8,8 +8,6 @@
 
 namespace vortex {
 
-
-
 Mesh::Mesh(std::string name) :
     mName(name),
     mVertices(NULL),
@@ -119,7 +117,7 @@ void Mesh::init()
 
 void Mesh::draw()
 {
-//         std::cerr<< "mesh draw " << std::endl;
+         //std::cerr<< "mesh draw " << std::endl;
     // enable vertex attrib
     // glEnable();
     glAssert(glBindVertexArray(mVertexArrayObject));
@@ -130,6 +128,9 @@ void Mesh::draw()
     GLint count = mNumIndices;
     void *indices = NULL;
     glAssert(glDrawElements(mode, count, type, indices));
+    if (this->mSelected)
+        drawBbox(glm::mat4(), glm::mat4());
+
 }
 
 void Mesh::drawPatch()
@@ -158,6 +159,7 @@ void Mesh::drawLines()
     GLint count = mNumIndices;
     void *indices = NULL;
     glAssert(glDrawElements(mode, count, type, indices));
+
 }
 
 
@@ -167,7 +169,7 @@ void Mesh::drawBbox(glm::mat4x4 modelViewMatrix, glm::mat4x4 projectionMatrix)
     glm::vec3 max = mBbox.getMax();
 
     ///@todo : use retained mode
-    /*
+
         glBegin(GL_LINE_STRIP);
         glVertex3f( min[0], min[1], min[2] );
         glVertex3f( min[0], min[1], max[2] );
@@ -189,7 +191,6 @@ void Mesh::drawBbox(glm::mat4x4 modelViewMatrix, glm::mat4x4 projectionMatrix)
         glVertex3f( min[0], max[1], min[2] );
         glVertex3f( max[0], max[1], min[2] );
         glEnd();
-    */
 }
 
 void Mesh::drawSelectedFace()
