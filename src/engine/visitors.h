@@ -232,6 +232,19 @@ private:
     int verticesCount;
 };
 
+/**
+ * Set a material for one mesh (by name)
+ * @ingroup GraphOperationGroup
+ */
+class MaterialSetter : public SceneGraph::VisitorOperation {
+public:
+    MaterialSetter(Material *material, std::string name);
+    void operator()(SceneGraph::Node *theNode);
+private :
+    Material *mMaterial;
+    std::string mName;
+};
+
 
 /**
  * Update the mesh position (animation)

@@ -144,6 +144,7 @@ void DefaultLoopBuilder::operator()(SceneGraph::Node *theNode, const glm::mat4x4
 
     }
 }
+
 /*
  * -------------------------------------------------------------------------------
  */
@@ -175,6 +176,7 @@ void ShaderLoopBuilder::operator()(SceneGraph::Node *theNode, const glm::mat4x4 
             // get or generate the shader associated with this configuration
             prog = mResourcesManager->getShaderProgram(nodeShaderConfiguration);
             prog->setConfiguration(nodeShaderConfiguration);
+
             (*mLoop)[ *prog ][ TransformState(modelViewMatrix, projectionMatrix, prog)]
             [ MaterialState(nodeMaterial, prog)].push_back((*leafNode)[i]);
             }
@@ -254,7 +256,7 @@ ShaderBuilder::ShaderBuilder(vortex::AssetManager *resourcesManager, std::string
     mShaderName(shaderName),
     mSetAsDefault(setDefault), mPropertiesFilter(NULL){
     mShaderName = mResourcesManager->getShaderBasePath() + shaderName;
-    //std::cerr << "Shader builder visitor : " << mShaderName << std::endl;
+    std::cerr << "Shader builder visitor : " << mShaderName << std::endl;
 }
 
 void ShaderBuilder::operator()(SceneGraph::Node *theNode)
@@ -276,6 +278,7 @@ void ShaderBuilder::operator()(SceneGraph::Node *theNode)
                         if (mPropertiesFilter->match(nodeMaterial->getTextureSemantic(j)) )
                             nodeShaderConfiguration.addProperty(nodeMaterial->getTextureSemanticString(j));
                     } else {
+                        std::cout << nodeMaterial->getTextureSemanticString(j) << std::endl;
                         nodeShaderConfiguration.addProperty(nodeMaterial->getTextureSemanticString(j));
                     }
                 }
@@ -375,6 +378,25 @@ void MeshUpdater::operator()(SceneGraph::Node *theNode) {
             } else {
                (*leafNode)[i]->reset();
             }
+        }
+    }
+}
+
+/*
+ * Material Setter
+ * -------------------------------------------------------------------------------
+ */
+
+MaterialSetter::MaterialSetter(Material *material, std::string name) : mMaterial(material), mName(name) {
+}
+
+void MaterialSetter::operator ()(SceneGraph::Node *theNode) {
+    if (theNode->isLeaf()) {
+        SceneGraph::LeafMeshNode *leafNode = static_cast<SceneGraph::LeafMeshNode *>(theNode);
+
+        for (int i = 0; i < leafNode->nMeshes(); ++i) {
+            if ((*leafNode)[i]->name() == mName)
+                leafNode->getRenderState(i)->setMaterial(mMaterial);
         }
     }
 }

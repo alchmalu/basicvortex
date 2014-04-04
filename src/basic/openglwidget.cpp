@@ -112,6 +112,9 @@ void OpenGLWidget::initializeGL() {
     // WARNING : uncoment the next line gives segfault on GeForce 8800 GTX :(
     glAssert(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 
+    mAssetManager->setShaderFileExtentions(std::string(".vert.glsl"), std::string(".frag.glsl"));
+    mAssetManager->setShaderBasePath(std::string("../src/basic/shaders/"));
+
     mRenderer->initRessources(mAssetManager);
 
     resetCamera();
@@ -354,6 +357,8 @@ void OpenGLWidget::mousePressEvent ( QMouseEvent * e ) {
 
     if (handleMouseEvent ( event ))
         updateGL();
+
+    this->mRenderer->readDepthAt(e->x(), e->y());
 
 }
 

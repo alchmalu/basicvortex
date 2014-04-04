@@ -13,7 +13,6 @@ using namespace vortex::util;
 static GLenum bufs[]={GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4};
 
 MyRenderer::MyRenderer(SceneManager *sceneManager, int width, int height) : Renderer(sceneManager), mRenderMode(0), mDisplayTextureId(0) {
-
     glCheckError();
 
     mFbo = new FBO(FBO::Components(FBO::DEPTH | FBO::COLOR), width, height);
@@ -66,7 +65,7 @@ void MyRenderer::ambientPass(vortex::ShaderLoop &theRenderingLoop, const glm::ma
     // render ambient and normal
     ShadersGlobalParameters  ambientAndNormalParamameters;
     ambientAndNormalParamameters.addParameter("view2worldMatrix", viewToWorldMatrix);
-    ambientAndNormalParamameters.addParameter("ambientIntensity", 1.0f );
+    ambientAndNormalParamameters.addParameter("ambientIntensity", 1.f );
     theRenderingLoop.draw(ambientAndNormalParamameters, modelViewMatrix, projectionMatrix);
 }
 
@@ -278,6 +277,9 @@ void MyRenderer::render(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &p
     {
         (*(mRenderOperators[mRenderMode]))(modelViewMatrix, projectionMatrix);
         showTexture(mDisplayTextureId);
+
+        this->renderPicking(modelViewMatrix, projectionMatrix);
+        //showTexture(mDisplayTextureId);
     }
 }
 
@@ -353,6 +355,7 @@ void MyRenderer::initRessources(AssetManager *assetManager){
      * Image post-processing shaders
      */
     mDisplayShaderId = assetManager->addShaderProgram("display");
+    mPickingShaderId = assetManager->addShaderProgram("fill");
     mRenderOperators.push_back(new FilledRenderOperator(this));
     mRenderOperators.push_back(new WireRenderOperator(this));
 
@@ -369,6 +372,7 @@ void MyRenderer::initRessources(AssetManager *assetManager){
 void MyRenderer::buildRenderingLoops(){
     mMainDrawLoop.clear();
     mAmbientAndNormalLoop.clear();
+
     if (mRenderMode == 0) { // Fill mode
         // Light loop builder
         DefaultLoopBuilder mainDrawLoopBuilder(mSceneManager->sceneGraph(), &mMainDrawLoop);
@@ -393,15 +397,90 @@ void MyRenderer::buildRenderingLoops(){
     }
 }
 
+void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {
+    ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
+
+    /* Get all meshes, each mesh have an unique ID witch is his position in the vector */
+    mPickingMeshes.clear();
+    MeshVectorBuilder meshVectorBuilder(mSceneManager->sceneGraph(), &mPickingMeshes);
+    SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), meshVectorBuilder);
+    renderPassesVisitor.go();
+
+    // Bind the FBO
+    mFbo->useAsTarget(mWidth, mHeight);
+    glAssert(glDrawBuffers(1, bufs));
+    glAssert(glClearColor(0.1, 0.1, 0.1, 1.));
+    glAssert(glClearDepth(1.0));
+    glAssert(glDepthFunc(GL_LESS));
+    glAssert(glDisable(GL_BLEND));
+    mFbo->clear(FBO::ALL);// to clear all attached texture
+
+    // Bind picking shader
+    pickingShader->bind();
+
+    // For vertex shader
+    glm::mat4x4 MVP = projectionMatrix * modelViewMatrix;
+    pickingShader->setUniform("MVP", MVP);
+
+    for (int i = 0 ; i < mPickingMeshes.size() ; i++) {
+        pickingShader->setUniform("color", idToColor(i)); // Unique color (flat) from id for fragment chader
+        mPickingMeshes[i]->draw();
+    }
+
+    glDepthMask(GL_TRUE);
+}
+
 float MyRenderer::readDepthAt(int x, int y){
-    float depth;
+    float depth = 0;
+    GLubyte data[4];
+    GLint viewport[4];
+
     mFbo->bind();
-    glAssert( glReadPixels(x,y,1,1,GL_DEPTH_COMPONENT, GL_FLOAT,&depth) );
-    mFbo->unbind();
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    // Transformer les coordonnées souris en coordonnées framebuffer
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    glAssert(glReadPixels(x, viewport[3]-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data));
+
+    // DEBUG PICKING
+    std::cerr << "Texel = " << int(data[0]) << " " << int(data[1]) << " " << int(data[2]) << std::endl;
+    Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(int(data[0]),int(data[1]),int(data[2]))];
+    std::cerr << "Mesh = " << meshPicked->name() << std::endl;
+    meshPicked->setSelected(true);
+
     return depth;
 }
 
 void MyRenderer::reloadShaders(){
     buildRenderingLoops();
 }
+
+glm::vec4 MyRenderer::idToColor(int id) {
+    float r = ((id / 65536) % 256) / 255.0;
+    float g = ((id / 256) % 256) / 255.0;
+    float b = (id % 256) / 255.0;
+
+    //std::cout << id << " => (" << r << "," << g << "," << b << ")" << std::endl;
+
+    return glm::vec4(r, g, b, 1);
+}
+
+int MyRenderer::colorToId(int r, int g, int b) {
+    return r * 65536 + g * 256 + b;
+}
+
+MyRenderer::MeshVectorBuilder::MeshVectorBuilder(SceneGraph *sceneGraph, MyRenderer::MeshVectorBuilder::MeshVector *meshes) : mSceneGraph(sceneGraph), mMeshes(meshes) {
+}
+
+void MyRenderer::MeshVectorBuilder::operator ()(SceneGraph::Node *theNode) {
+    if (theNode->isLeaf()) {
+        SceneGraph::LeafMeshNode *leafNode = static_cast<SceneGraph::LeafMeshNode *>(theNode);
+        for (int i = 0; i < leafNode->nMeshes(); ++i) {
+            if ((*leafNode)[i])
+                (*mMeshes).push_back((*leafNode)[i]);
+        }
+    }
+}
+
 

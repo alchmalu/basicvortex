@@ -87,7 +87,6 @@ private:
     ShaderProgram *mProgram;
 };
 
-
 /**
  *  Generic vector (based on std::vector) with a draw method. Drawing a vector results in drawing all its elements.
  *  @ingroup RenderingLoops
@@ -172,7 +171,6 @@ public:
   *  @ingroup RenderingLoops
   */
 typedef DrawableMap< MaterialState, DrawableVector<Mesh::MeshPtr> > MaterialLoop;
-
 
 /**
   *  Draw MaterialLoop ordered by transformations
