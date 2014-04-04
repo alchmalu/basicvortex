@@ -104,14 +104,6 @@ public:
     }
 
     /**
-     * @return The Mesh ID.
-     *
-     */
-    int id() {
-        return mId;
-    }
-
-    /**
      * Mesh Bounding Box drawing method : draw the BBox edges.
      *
      * @param modelViewMatrix The ModelView transformation matrix to be applied to BBox vertices position.
@@ -187,9 +179,6 @@ protected :
     GLuint mVertexBufferObjects[2];
 
     BBox mBbox;
-
-    // Unique ID
-    int mId;
 };
 
 class MeshBuilder{
