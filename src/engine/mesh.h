@@ -155,7 +155,7 @@ public:
 
     virtual void reset();
 
-
+    bool isSelected() const {return mSelected;}
     int numIndices() const { return mNumIndices; }
     int numvertices() const { return mNumVertices;}
     const VertexData * const vertices() const {return mVertices;}

@@ -19,10 +19,12 @@ set(basic_MOC_HDRS
 mainwindow.h
 openglwidget.h
 renderercontrol.h
+materialeditor.h
 )
 
 set(basic_UIS
 renderercontrol.ui
+materialeditor.ui
 )
 
 

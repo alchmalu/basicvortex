@@ -150,7 +150,7 @@ public:
         /** Access to the ith mesh */
         Mesh::MeshPtr & operator[](unsigned int i) {
             return mMeshes[i];
-        };
+        }
 
         void draw(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
         void debug(int indentLevel = 0);
@@ -203,10 +203,10 @@ public:
         ~VisitorOperation() {}
         /** Implement this if your operator just needs the node to do its job
          */
-        virtual void operator()(SceneGraph::Node *theNode) {};
+        virtual void operator()(SceneGraph::Node *theNode) {}
         /** Implement this if your operator needs the node and its matrices to do its job
          */
-        virtual void operator()(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {};
+        virtual void operator()(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {}
     };
 
 
@@ -216,7 +216,7 @@ public:
      */
     class Visitor {
     public:
-        virtual ~Visitor() {};
+        virtual ~Visitor() {}
         void go() {
             if (mVisitedGraph->mRootNode) run(mVisitedGraph->mRootNode);
         }
@@ -234,7 +234,7 @@ public:
     private :
         class NullAction : public VisitorOperation {
         public:
-            NullAction() {};
+            NullAction() {}
             void operator()(SceneGraph::Node *) {}
             void operator()(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {}
         };
@@ -247,8 +247,8 @@ public:
      */
     class PreOrderVisitor : public Visitor {
     public:
-        PreOrderVisitor(SceneGraph *theGraph, VisitorOperation &action) : Visitor(theGraph, action) {};
-        virtual ~PreOrderVisitor() {};
+        PreOrderVisitor(SceneGraph *theGraph, VisitorOperation &action) : Visitor(theGraph, action) {}
+        virtual ~PreOrderVisitor() {}
     protected:
         void run(SceneGraph::Node *theNode);
         void run(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
@@ -260,8 +260,8 @@ public:
      */
     class PostOrderVisitor : public Visitor {
     public:
-        PostOrderVisitor(SceneGraph *theGraph, VisitorOperation &action) : Visitor(theGraph, action) {};
-        virtual ~PostOrderVisitor() {};
+        PostOrderVisitor(SceneGraph *theGraph, VisitorOperation &action) : Visitor(theGraph, action) {}
+        virtual ~PostOrderVisitor() {}
     protected:
         void run(SceneGraph::Node *theNode);
         void run(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);

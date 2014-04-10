@@ -31,6 +31,7 @@
 #include "myrenderer.h"
 
 #include "renderercontrol.h"
+#include "materialeditor.h"
 
 
 /**
@@ -61,6 +62,7 @@ signals:
 public slots:
     void animate();
     void showRenderControl();
+    void toggleMaterialEditor();
     bool handleMouseEvent(const vortex::VortexEngine::MouseEvent& event);
 
 protected:
@@ -97,6 +99,7 @@ private:
     double mTime_anim;
 
     RendererControl * mRendercontrol;
+    MaterialEditor * mMaterialEditor;
 };
 
 #endif

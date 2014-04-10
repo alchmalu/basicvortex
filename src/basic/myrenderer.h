@@ -17,9 +17,9 @@ class MyRenderer : public vortex::Renderer{
     friend class RaytracingRenderOperator;
 public:
     // public enums
-    enum TextureId {COLOR_TEXTURE, DEPTH_TEXTURE, NORMAL_TEXTURE, NUM_TEXTURE};
+    enum TextureId {COLOR_TEXTURE, DEPTH_TEXTURE, NORMAL_TEXTURE, PICKING_TEXTURE, NUM_TEXTURE};
     std::string getTextureName(int i){
-        static const std::string textureNames[]={"COLOR_TEXTURE", "DEPTH_TEXTURE", "NORMAL_TEXTURE"};
+        static const std::string textureNames[]={"COLOR_TEXTURE", "DEPTH_TEXTURE", "NORMAL_TEXTURE", "PICKING_TEXTURE"};
         return textureNames[i];
     }
 
@@ -60,8 +60,6 @@ public:
         mDisplayTextureId=id;
     }
 
-    float readDepthAt(int x, int y);
-
     void showTexture(int which);
 
     vortex::Texture *getTexture(TextureId sourceTexture){
@@ -71,7 +69,8 @@ public:
     void drawScreenQuad() { mScreenQuad->draw(); }
     void reloadShaders();
 
-    void renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
+
+    vortex::Mesh::MeshPtr pick(int x, int y);
 private:
     /// Textures for all the rendering steps
     vortex::Texture * mTextures[NUM_TEXTURE];
@@ -100,6 +99,7 @@ private:
 
     void renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
     void renderWireframe(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
+    void renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
 
     void drawSkyBox(int shaderId, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
     void ambientPass(vortex::ShaderLoop &theRenderingLoop, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix, const glm::mat4x4 &viewToWorldMatrix);
@@ -111,6 +111,7 @@ private:
 
     /* Image processing shaders */
     int mDisplayShaderId;
+    int mPickingShaderId;
 
     vortex::MaterialPropertyFilter *mAmbientAndNormalFilter;
     vortex::MaterialPropertyFilter *mDepthFilter;
@@ -134,8 +135,6 @@ private:
      ***********************************
      */
 
-    int mPickingShaderId;
-
     class MeshVectorBuilder : public vortex::SceneGraph::VisitorOperation {
     public:
         typedef std::vector<vortex::Mesh::MeshPtr> MeshVector;
@@ -149,8 +148,8 @@ private:
 
     MeshVectorBuilder::MeshVector mPickingMeshes;
 
-    glm::vec4 idToColor(int id);
-    int colorToId(int r, int g, int b);
+    glm::vec3 idToColor(int id);
+    int colorToId(glm::vec3 color);
 
 };
 
