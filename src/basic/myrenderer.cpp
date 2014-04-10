@@ -22,6 +22,7 @@ MyRenderer::MyRenderer(SceneManager *sceneManager, int width, int height) : Rend
     mTextures[DEPTH_TEXTURE] = new Texture("depth", GL_TEXTURE_2D/*GL_TEXTURE_RECTANGLE*/);
     mTextures[NORMAL_TEXTURE] = new Texture("normal", GL_TEXTURE_2D);
     mTextures[COLOR_TEXTURE] = new Texture("color", GL_TEXTURE_2D );
+    mTextures[PICKING_TEXTURE] = new Texture("picking", GL_TEXTURE_2D);
 
     glCheckError();
 
@@ -138,8 +139,6 @@ void MyRenderer::renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat
 
     // render ambient and normal
     ambientPass(mAmbientAndNormalLoop, modelViewMatrix, projectionMatrix, viewToWorldMatrix);
-
-
 
     // setup per light rendering : blend each pass onto the previous one
     glAssert(glDrawBuffers(1, bufs));
@@ -276,10 +275,8 @@ void MyRenderer::render(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &p
         return;
     {
         (*(mRenderOperators[mRenderMode]))(modelViewMatrix, projectionMatrix);
+        renderPicking(modelViewMatrix, projectionMatrix);
         showTexture(mDisplayTextureId);
-
-        this->renderPicking(modelViewMatrix, projectionMatrix);
-        //showTexture(mDisplayTextureId);
     }
 }
 
@@ -296,13 +293,17 @@ void MyRenderer::setViewport(int width, int height)
         mTextures[NORMAL_TEXTURE]->deleteGL();
     if (mTextures[COLOR_TEXTURE]->getId() != 0)
         mTextures[COLOR_TEXTURE]->deleteGL();
+    if (mTextures[PICKING_TEXTURE]->getId() != 0)
+        mTextures[PICKING_TEXTURE]->deleteGL();
 
     mTextures[NORMAL_TEXTURE]->initGL(GL_RGBA32F, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     mTextures[COLOR_TEXTURE]->initGL(GL_RGBA32F, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    mTextures[PICKING_TEXTURE]->initGL(GL_RGBA32F, mWidth, mHeight, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     mFbo->bind();
     mFbo->attachTexture(GL_COLOR_ATTACHMENT0, mTextures[COLOR_TEXTURE]);
     mFbo->attachTexture(GL_COLOR_ATTACHMENT1, mTextures[NORMAL_TEXTURE]);
+    mFbo->attachTexture(GL_COLOR_ATTACHMENT2, mTextures[PICKING_TEXTURE]);
     mFbo->attachTexture(GL_DEPTH_ATTACHMENT, mTextures[DEPTH_TEXTURE]);
     mFbo->check();
     mFbo->unbind();
@@ -408,8 +409,9 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
 
     // Bind the FBO
     mFbo->useAsTarget(mWidth, mHeight);
-    glAssert(glDrawBuffers(1, bufs));
-    glAssert(glClearColor(0.1, 0.1, 0.1, 1.));
+    GLuint attachments[2] = {GL_COLOR_ATTACHMENT2};
+    glAssert(glDrawBuffers(1, attachments));
+    glAssert(glClearColor(0., 0., 0., 1.));
     glAssert(glClearDepth(1.0));
     glAssert(glDepthFunc(GL_LESS));
     glAssert(glDisable(GL_BLEND));
@@ -423,20 +425,19 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
     pickingShader->setUniform("MVP", MVP);
 
     for (int i = 0 ; i < mPickingMeshes.size() ; i++) {
-        pickingShader->setUniform("color", idToColor(i)); // Unique color (flat) from id for fragment chader
+        pickingShader->setUniform("color", glm::vec4(idToColor(i+1), 1)); // Unique color (flat) from id for fragment chader
         mPickingMeshes[i]->draw();
     }
 
     glDepthMask(GL_TRUE);
 }
 
-float MyRenderer::readDepthAt(int x, int y){
-    float depth = 0;
+Mesh::MeshPtr MyRenderer::pick(int x, int y){
     GLubyte data[4];
     GLint viewport[4];
 
     mFbo->bind();
-    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(GL_COLOR_ATTACHMENT2);
 
     // Transformer les coordonnées souris en coordonnées framebuffer
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -444,30 +445,39 @@ float MyRenderer::readDepthAt(int x, int y){
     glAssert(glReadPixels(x, viewport[3]-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data));
 
     // DEBUG PICKING
-    std::cerr << "Texel = " << int(data[0]) << " " << int(data[1]) << " " << int(data[2]) << std::endl;
-    Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(int(data[0]),int(data[1]),int(data[2]))];
-    std::cerr << "Mesh = " << meshPicked->name() << std::endl;
-    meshPicked->setSelected(true);
+    glm::vec3 color(data[0], data[1], data[2]);
+    //std::cerr << "Texel = " << color.x << " " << color.y << " " << color.z << std::endl;
 
-    return depth;
+    for (int i = 0 ; i < mPickingMeshes.size() ; i++)
+        mPickingMeshes[i]->setSelected(false);
+
+    if (color.x == 0 && color.y == 0 && color.z == 0)
+        return NULL;
+    else {
+        Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(color)-1];
+        meshPicked->setSelected(true);
+        return meshPicked;
+    }
+
+    /* Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(int(data[0]),int(data[1]),int(data[2]))];
+    std::cerr << "Mesh = " << meshPicked->name() << std::endl;
+    meshPicked->setSelected(true);*/
 }
 
 void MyRenderer::reloadShaders(){
     buildRenderingLoops();
 }
 
-glm::vec4 MyRenderer::idToColor(int id) {
+glm::vec3 MyRenderer::idToColor(int id) {
     float r = ((id / 65536) % 256) / 255.0;
     float g = ((id / 256) % 256) / 255.0;
     float b = (id % 256) / 255.0;
 
-    //std::cout << id << " => (" << r << "," << g << "," << b << ")" << std::endl;
-
-    return glm::vec4(r, g, b, 1);
+    return glm::vec3(r, g, b);
 }
 
-int MyRenderer::colorToId(int r, int g, int b) {
-    return r * 65536 + g * 256 + b;
+int MyRenderer::colorToId(glm::vec3 color) {
+    return color.x * 65536 + color.y * 256 + color.z;
 }
 
 MyRenderer::MeshVectorBuilder::MeshVectorBuilder(SceneGraph *sceneGraph, MyRenderer::MeshVectorBuilder::MeshVector *meshes) : mSceneGraph(sceneGraph), mMeshes(meshes) {

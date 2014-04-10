@@ -23,6 +23,7 @@ public:
     MainWindow();
     ~MainWindow();
 
+
 protected:
     void closeEvent ( QCloseEvent *event );
 
@@ -33,6 +34,7 @@ private slots:
     void resetCamera();
     void reloadShaders();   
     void switchRenderingMode(bool on);
+    void toggleMaterialEditor(bool on);
 
 private:
     void createActions();
@@ -50,11 +52,13 @@ private:
 
     QMenu *fileMenu;
     QMenu *renderMenu;
+    QMenu *windowsMenu;
     QAction *openAct;
     QAction *exitAct;
     QAction *checkResetCamera;
     QAction *checkReloadShaders;
     QAction *renderingMode;
+    QAction *a_toggleMaterialEditor;
 
     QSize getSize();
     QString mNameFile;

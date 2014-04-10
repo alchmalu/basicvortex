@@ -108,6 +108,13 @@ void MainWindow::createActions() {
     renderingMode->setShortcut( tr( "Ctrl+F") );
     renderingMode->setStatusTip( tr( "Switch Fill/Wireframe rendering") );
     connect( renderingMode, SIGNAL( triggered(bool) ), this, SLOT( switchRenderingMode(bool) ) );
+
+    a_toggleMaterialEditor = new QAction( tr( "&Material Editor"), this );
+    a_toggleMaterialEditor->setShortcut( tr( "Ctrl+M") );
+    a_toggleMaterialEditor->setStatusTip( tr( "Show/Hide material editor windows") );
+    connect( a_toggleMaterialEditor, SIGNAL( triggered(bool) ), this, SLOT( toggleMaterialEditor(bool) ) );
+
+
 }
 
 void MainWindow::createMenus() {
@@ -122,6 +129,9 @@ void MainWindow::createMenus() {
     renderMenu->addAction ( checkReloadShaders );
     renderMenu->addSeparator();
     renderMenu->addAction ( renderingMode );
+
+    windowsMenu = menuBar()->addMenu ( tr ( "&Windows" ) );
+    windowsMenu->addAction ( a_toggleMaterialEditor );
 }
 
 void MainWindow::createStatusBar() {
@@ -215,4 +225,8 @@ void MainWindow::resetCamera(){
 
 void MainWindow::switchRenderingMode(bool on) {
     openGLWidget->switchRenderingMode(!on);
+}
+
+void MainWindow::toggleMaterialEditor(bool on) {
+    openGLWidget->toggleMaterialEditor();
 }

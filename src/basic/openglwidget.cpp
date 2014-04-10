@@ -21,12 +21,11 @@
 
 #include "timer.h"
 #include <QTimer>
+#include <QMenu>
 
 #include <QWheelEvent>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-
 
 #define TAILLE_MAX_IMAGES_TAB 1500
 
@@ -112,9 +111,6 @@ void OpenGLWidget::initializeGL() {
     // WARNING : uncoment the next line gives segfault on GeForce 8800 GTX :(
     glAssert(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 
-    mAssetManager->setShaderFileExtentions(std::string(".vert.glsl"), std::string(".frag.glsl"));
-    mAssetManager->setShaderBasePath(std::string("../src/basic/shaders/"));
-
     mRenderer->initRessources(mAssetManager);
 
     resetCamera();
@@ -122,6 +118,11 @@ void OpenGLWidget::initializeGL() {
 
     mRendercontrol = new RendererControl(mRenderer , this);
     mRendercontrol->setGlWidget(this);
+
+    mMaterialEditor = new MaterialEditor(mRenderer , this);
+    mMaterialEditor->setGlWidget(this);
+    mMaterialEditor->setModal(false);
+
     glCheckError();
 }
 
@@ -358,8 +359,8 @@ void OpenGLWidget::mousePressEvent ( QMouseEvent * e ) {
     if (handleMouseEvent ( event ))
         updateGL();
 
-    this->mRenderer->readDepthAt(e->x(), e->y());
-
+    this->mRenderer->pick(e->x(), e->y());
+    mMaterialEditor->updateView();
 }
 
 void OpenGLWidget::switchAnimation(bool on){
@@ -386,6 +387,14 @@ void OpenGLWidget::switchRenderingMode(bool on){
 void OpenGLWidget::showRenderControl(){
     mRendercontrol->setRenderMode(mRenderer->getRenderMode());
     mRendercontrol->show();
+}
+
+void OpenGLWidget::toggleMaterialEditor() {
+    if (!mMaterialEditor->isVisible()) {
+        mMaterialEditor->updateView();
+        mMaterialEditor->show();
+    } else
+        mMaterialEditor->hide();
 }
 
 
