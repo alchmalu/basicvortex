@@ -359,8 +359,10 @@ void OpenGLWidget::mousePressEvent ( QMouseEvent * e ) {
     if (handleMouseEvent ( event ))
         updateGL();
 
-    this->mRenderer->pick(e->x(), e->y());
-    mMaterialEditor->updateView();
+    if( (e->button() & Qt::LeftButton) && (e->modifiers() & Qt::ControlModifier) ) {
+        mRenderer->pick(e->x(), e->y());
+        mMaterialEditor->updateView();
+    }
 }
 
 void OpenGLWidget::switchAnimation(bool on){

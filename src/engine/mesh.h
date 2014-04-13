@@ -105,11 +105,8 @@ public:
 
     /**
      * Mesh Bounding Box drawing method : draw the BBox edges.
-     *
-     * @param modelViewMatrix The ModelView transformation matrix to be applied to BBox vertices position.
-     * @param projeciotnMatrix The Projection transformation matrix to be applied to BBox vertices position.
      */
-    void drawBbox(glm::mat4x4 modelViewMatrix, glm::mat4x4 projectionMatrix);
+    void drawBbox();
 
     /**
      * Secify the Mesh has been selected for edition.
@@ -143,6 +140,8 @@ public:
      */
     void drawSelectedVertice();
 
+    void drawLineStrip();
+
     bool mSelected;
     int mSelectedFaceId;
     int mSelectedVerticeId;
@@ -160,6 +159,7 @@ public:
     int numvertices() const { return mNumVertices;}
     const VertexData * const vertices() const {return mVertices;}
     const int * const indices() const {return mIndices;}
+
 
 
 protected :
@@ -211,9 +211,28 @@ class ScreenQuadBuilder:public MeshBuilder{
 
         return new Mesh(name, vertices, 4, indices, 6);
     }
-
 };
 
+class BBoxMeshBuilder {
+public:
+    Mesh *build(std::string name, BBox bbox) {
+        Mesh::VertexData vertices[8];
+        std::vector<glm::vec3> theCorners;
+        bbox.getCorners(theCorners);
+
+        for (int i = 0 ; i < 8 ; i++)
+            vertices[i].mVertex = theCorners[i];
+
+        int indices[16] = {
+            0,3,4,2,
+            4,7,6,2,
+            0,1,6,7,
+            5,1,5,3
+        };
+
+        return new Mesh(name, vertices, 8, indices, 16);
+    }
+};
 
 } // namespace vortex
 #endif // MESH_H

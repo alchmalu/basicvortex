@@ -109,6 +109,53 @@ bool TransformState::operator< (const TransformState &other) const {
     return false;
 }
 
+//-------------------------------------------------------------------------------
+// PickingState
+//-------------------------------------------------------------------------------
+
+PickingState::PickingState(int id) :
+    Bindable(), mId(id), mModelView(NULL), mProjection(NULL), mProgram(NULL) {
+}
+
+PickingState::PickingState(int id, const glm::mat4x4 &modelView, const glm::mat4x4 &projection, ShaderProgram *prog) :
+    Bindable(), mId(id), mModelView(modelView), mProjection(projection), mProgram(prog) {
+}
+
+void PickingState::bind() const {
+    bind(mId, mModelView*mProjection, mProgram);
+}
+
+void PickingState::bind(const glm::mat4x4 &modelviewMatrix, const glm::mat4x4 &projectionMatrix) const {
+    bind(mId, projectionMatrix * (modelviewMatrix * mModelView), mProgram);
+}
+
+void PickingState::bind(int id, const glm::mat4x4 &mvp, ShaderProgram *shader) {
+    glm::vec4 color(idToColor(id), 1);
+    shader->setUniform("MVP", mvp);
+    shader->setUniform("color", color);
+}
+
+bool PickingState::operator< (const PickingState &other) const {
+    return mId < other.mId;
+}
+
+bool PickingState::operator ==(const PickingState &other) const {
+    return mId == other.mId;
+}
+
+glm::vec3 PickingState::idToColor(int id) {
+    float r = ((id / 65536) % 256) / 255.0;
+    float g = ((id / 256) % 256) / 255.0;
+    float b = (id % 256) / 255.0;
+
+    //std::cout << r*255 << " " << g*255 << " " << b*255 << std::endl;
+    return glm::vec3(r, g, b);
+}
+
+int PickingState::colorToId(glm::vec3 color) {
+    return color.x * 65536 + color.y * 256 + color.z;
+}
+
 #ifdef LAZYTRANSFORM
 
 template<>

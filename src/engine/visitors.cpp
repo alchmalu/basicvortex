@@ -57,8 +57,11 @@ void BBoxRenderer::operator()(SceneGraph::Node *theNode, const glm::mat4x4 &mode
     if (theNode->isLeaf()) {
         SceneGraph::LeafMeshNode *leafNode = static_cast<SceneGraph::LeafMeshNode *>(theNode);
         for (int i = 0; i < leafNode->nMeshes(); ++i) {
-//          leafNode->operator[] ( i )->drawBbox ( modelViewMatrix, projectionMatrix );
-            leafNode->drawBbox(modelViewMatrix, projectionMatrix);
+            if ((*leafNode)[i] == mMesh) {
+                mProgram->setUniform("MVP", projectionMatrix*modelViewMatrix);
+                mProgram->setUniform("color", mColor);
+                mMesh->drawBbox();
+            }
         }
     }
 }

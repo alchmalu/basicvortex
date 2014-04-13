@@ -88,6 +88,31 @@ private:
 };
 
 /**
+ *  @ingroup RenderingLoopsKeys
+ *  @todo Write full documentation of this abstraction
+ */
+class PickingState : public Bindable {
+public:
+    PickingState(int id);
+    PickingState(int id, const glm::mat4x4 &modelView, const glm::mat4x4 &projection, ShaderProgram *prog);
+
+    void bind() const;
+    void bind(const glm::mat4x4 &modelviewMatrix, const glm::mat4x4 &projectionMatrix) const;
+    static void bind(int id, const glm::mat4x4 &mvp, ShaderProgram *shader);
+
+    bool operator< (const PickingState &other) const;
+    bool operator== (const PickingState &other) const;
+
+    static glm::vec3 idToColor(int id);
+    static int colorToId(glm::vec3 color);
+
+private:
+    int mId;
+    glm::mat4x4 mModelView, mProjection;
+    ShaderProgram *mProgram;
+};
+
+/**
  *  Generic vector (based on std::vector) with a draw method. Drawing a vector results in drawing all its elements.
  *  @ingroup RenderingLoops
  */
@@ -115,6 +140,22 @@ public:
             (*it)->draw();
         }
     }
+};
+
+/**
+ *  Specialisation of Drawable pointer
+ *  @ingroup RenderingLoops
+ */
+class DrawableMeshPtr : public Drawable {
+public:
+    DrawableMeshPtr() : Drawable(), mMesh(NULL) {}
+    DrawableMeshPtr(Mesh::MeshPtr mesh) : Drawable(), mMesh(mesh) {}
+
+    void draw() {
+        mMesh->draw();
+    }
+
+    Mesh::MeshPtr mMesh;
 };
 
 /**
@@ -165,7 +206,6 @@ public:
 };
 
 
-
 /**
   *  Draw meshes ordered by materials
   *  @ingroup RenderingLoops
@@ -194,6 +234,13 @@ typedef DrawableMap< TransformState, DrawableVector<Mesh::MeshPtr> > LightTransf
   *  @ingroup RenderingLoops
   */
 typedef DrawableMap< ShaderProgram, LightTransformLoop > LightShaderLoop;
+
+/**
+  *  Draw meshes for picking
+  *  @ingroup RenderingLoops
+  */
+typedef DrawableMap<PickingState, Mesh::MeshPtr> PickingLoop;
+
 
 #ifdef LAZYTRANSFORM
 template<>

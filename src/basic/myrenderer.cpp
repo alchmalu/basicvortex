@@ -35,6 +35,9 @@ MyRenderer::MyRenderer(SceneManager *sceneManager, int width, int height) : Rend
     glAssert( glDrawBuffer(GL_BACK) );
     glAssert( glReadBuffer(GL_BACK) );
 
+    mNodePicked = NULL;
+    mMeshI = -1;
+
     glCheckError();
 }
 
@@ -47,7 +50,6 @@ MyRenderer::~MyRenderer() {
         delete mTextures[i];
 
     delete mScreenQuad;
-
 }
 
 void MyRenderer::displayTexture(Texture * theTexture){
@@ -139,6 +141,8 @@ void MyRenderer::renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat
 
     // render ambient and normal
     ambientPass(mAmbientAndNormalLoop, modelViewMatrix, projectionMatrix, viewToWorldMatrix);
+    // dessine le rendu de la selection d'un mesh
+    drawSelection(modelViewMatrix, projectionMatrix);
 
     // setup per light rendering : blend each pass onto the previous one
     glAssert(glDrawBuffers(1, bufs));
@@ -260,9 +264,7 @@ void MyRenderer::renderWireframe(const glm::mat4x4 &modelViewMatrix, const glm::
 
 // --------------------------------------------
 void MyRenderer::showTexture(int which){
-
     displayTexture(mTextures[which]);
-
 }
 
 // --------------------------------------------
@@ -319,6 +321,9 @@ void MyRenderer::initRessources(AssetManager *assetManager){
     assetManager->setShaderFileExtentions(std::string(".vert.glsl"), std::string(".frag.glsl"));
     assetManager->setShaderBasePath(std::string("../src/basic/shaders/"));
 
+    mDisplayShaderId = assetManager->addShaderProgram("display");
+    mPickingShaderId = assetManager->addShaderProgram("fill");
+
 #ifdef STATISTIQUES
     glAssert( glGenQueries(4, queryRenderID) );
 #endif
@@ -352,11 +357,6 @@ void MyRenderer::initRessources(AssetManager *assetManager){
         buildRenderingLoops();
     }
 
-    /*
-     * Image post-processing shaders
-     */
-    mDisplayShaderId = assetManager->addShaderProgram("display");
-    mPickingShaderId = assetManager->addShaderProgram("fill");
     mRenderOperators.push_back(new FilledRenderOperator(this));
     mRenderOperators.push_back(new WireRenderOperator(this));
 
@@ -373,6 +373,7 @@ void MyRenderer::initRessources(AssetManager *assetManager){
 void MyRenderer::buildRenderingLoops(){
     mMainDrawLoop.clear();
     mAmbientAndNormalLoop.clear();
+    mPickingLoop.clear();
 
     if (mRenderMode == 0) { // Fill mode
         // Light loop builder
@@ -396,20 +397,23 @@ void MyRenderer::buildRenderingLoops(){
         SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), ambientAndNormalLoopBuilder);
         renderPassesVisitor.go(glm::mat4(1.0), glm::mat4(1.0));
     }
+
+    {
+        /* Get all meshes, each mesh have an unique ID witch is his position in the vector */
+        int id = 1;
+        ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
+        PickingLoopBuilder pickingPassesVisitor(&mPickingLoop, pickingShader, &id);
+        SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), pickingPassesVisitor);
+        renderPassesVisitor.go(glm::mat4(1.0), glm::mat4(1.0));
+    }
 }
 
 void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {
     ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
 
-    /* Get all meshes, each mesh have an unique ID witch is his position in the vector */
-    mPickingMeshes.clear();
-    MeshVectorBuilder meshVectorBuilder(mSceneManager->sceneGraph(), &mPickingMeshes);
-    SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), meshVectorBuilder);
-    renderPassesVisitor.go();
-
     // Bind the FBO
     mFbo->useAsTarget(mWidth, mHeight);
-    GLuint attachments[2] = {GL_COLOR_ATTACHMENT2};
+    GLuint attachments[1] = {GL_COLOR_ATTACHMENT2};
     glAssert(glDrawBuffers(1, attachments));
     glAssert(glClearColor(0., 0., 0., 1.));
     glAssert(glClearDepth(1.0));
@@ -417,22 +421,27 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
     glAssert(glDisable(GL_BLEND));
     mFbo->clear(FBO::ALL);// to clear all attached texture
 
-    // Bind picking shader
     pickingShader->bind();
-
-    // For vertex shader
-    glm::mat4x4 MVP = projectionMatrix * modelViewMatrix;
-    pickingShader->setUniform("MVP", MVP);
-
-    for (int i = 0 ; i < mPickingMeshes.size() ; i++) {
-        pickingShader->setUniform("color", glm::vec4(idToColor(i+1), 1)); // Unique color (flat) from id for fragment chader
-        mPickingMeshes[i]->draw();
+    for(PickingLoop::iterator it = mPickingLoop.begin() ; it != mPickingLoop.end() ; ++it) {
+        it->first.bind(modelViewMatrix, projectionMatrix);
+        it->second->draw();
     }
 
     glDepthMask(GL_TRUE);
 }
 
-Mesh::MeshPtr MyRenderer::pick(int x, int y){
+void MyRenderer::drawSelection(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {
+    if (mNodePicked) {
+        ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
+        pickingShader->bind();
+
+        BBoxRenderer bboxPassesVisitor(getMeshPicked(), glm::vec4(0,0,0,1), pickingShader);
+        SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), bboxPassesVisitor);
+        renderPassesVisitor.go(modelViewMatrix, projectionMatrix);
+    }
+}
+
+void MyRenderer::pick(int x, int y){
     GLubyte data[4];
     GLint viewport[4];
 
@@ -442,55 +451,64 @@ Mesh::MeshPtr MyRenderer::pick(int x, int y){
     // Transformer les coordonnées souris en coordonnées framebuffer
     glGetIntegerv(GL_VIEWPORT, viewport);
 
+    // Lecture de la couleur du pixel
     glAssert(glReadPixels(x, viewport[3]-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data));
-
-    // DEBUG PICKING
     glm::vec3 color(data[0], data[1], data[2]);
-    //std::cerr << "Texel = " << color.x << " " << color.y << " " << color.z << std::endl;
 
-    for (int i = 0 ; i < mPickingMeshes.size() ; i++)
-        mPickingMeshes[i]->setSelected(false);
+    // On déselectionne l'ancien object si c'est nécessaire
+    if (mNodePicked)
+        this->getMeshPicked()->setSelected(false);
 
-    if (color.x == 0 && color.y == 0 && color.z == 0)
-        return NULL;
-    else {
-        Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(color)-1];
-        meshPicked->setSelected(true);
-        return meshPicked;
+    if (color.x == 0 && color.y == 0 && color.z == 0) {
+        mNodePicked = NULL;
+        mMeshI = -1;
     }
+    else {
+        // On cherche le mesh cliqué pour mettre son attribut selected à true
+        PickingState picked = PickingState(PickingState::colorToId(color));
+        PickingLoop::iterator it = mPickingLoop.find(picked);
+        if (it != mPickingLoop.end())
+            it->second->setSelected(true);
 
-    /* Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(int(data[0]),int(data[1]),int(data[2]))];
-    std::cerr << "Mesh = " << meshPicked->name() << std::endl;
-    meshPicked->setSelected(true);*/
+        // Permet de récupérer des informations sur l'object cliqué plus rapidement
+        GetLeafMeshNodeSelected get(&mNodePicked, &mMeshI);
+        SceneGraph::PostOrderVisitor visitor(getScene()->sceneGraph(), get);
+        visitor.go();
+    }
 }
 
 void MyRenderer::reloadShaders(){
     buildRenderingLoops();
 }
 
-glm::vec3 MyRenderer::idToColor(int id) {
-    float r = ((id / 65536) % 256) / 255.0;
-    float g = ((id / 256) % 256) / 255.0;
-    float b = (id % 256) / 255.0;
-
-    return glm::vec3(r, g, b);
+MyRenderer::PickingLoopBuilder::PickingLoopBuilder(PickingLoop *loop, ShaderProgram *shader, int *id) : mLoop(loop), mShader(shader), mId(id) {
 }
 
-int MyRenderer::colorToId(glm::vec3 color) {
-    return color.x * 65536 + color.y * 256 + color.z;
-}
-
-MyRenderer::MeshVectorBuilder::MeshVectorBuilder(SceneGraph *sceneGraph, MyRenderer::MeshVectorBuilder::MeshVector *meshes) : mSceneGraph(sceneGraph), mMeshes(meshes) {
-}
-
-void MyRenderer::MeshVectorBuilder::operator ()(SceneGraph::Node *theNode) {
+void MyRenderer::PickingLoopBuilder::operator()(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix)
+{
     if (theNode->isLeaf()) {
         SceneGraph::LeafMeshNode *leafNode = static_cast<SceneGraph::LeafMeshNode *>(theNode);
         for (int i = 0; i < leafNode->nMeshes(); ++i) {
-            if ((*leafNode)[i])
-                (*mMeshes).push_back((*leafNode)[i]);
+            if ((*leafNode)[i]) {;
+                (*mLoop)[PickingState((*mId), modelViewMatrix, projectionMatrix, mShader)] = (*leafNode)[i];
+                (*mId)++;
+            }
         }
     }
 }
 
+MyRenderer::GetLeafMeshNodeSelected::GetLeafMeshNodeSelected(vortex::SceneGraph::LeafMeshNode **node, int *meshI) : mNode(node), mMeshI(meshI) {
+}
+
+void MyRenderer::GetLeafMeshNodeSelected::operator()(SceneGraph::Node *theNode) {
+    if (theNode->isLeaf()) {
+        SceneGraph::LeafMeshNode *leafNode = static_cast<SceneGraph::LeafMeshNode *>(theNode);
+        for (int i = 0; i < leafNode->nMeshes(); ++i) {
+            if ((*leafNode)[i]->isSelected()) {
+                *mNode = leafNode;
+                *mMeshI = i;
+            }
+        }
+    }
+}
 

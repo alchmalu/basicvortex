@@ -66,11 +66,24 @@ public:
         return mTextures[sourceTexture];
     }
 
+    vortex::Mesh::MeshPtr getMeshPicked() {
+        if (mNodePicked)
+            return (*mNodePicked)[mMeshI];
+        else
+            return NULL;
+    }
+
+    vortex::Material* getMaterialPicked() {
+        if (mNodePicked)
+            return mNodePicked->getRenderState(mMeshI)->getMaterial();
+        else
+            return NULL;
+    }
+
     void drawScreenQuad() { mScreenQuad->draw(); }
     void reloadShaders();
 
-
-    vortex::Mesh::MeshPtr pick(int x, int y);
+    void pick(int x, int y);
 private:
     /// Textures for all the rendering steps
     vortex::Texture * mTextures[NUM_TEXTURE];
@@ -100,6 +113,7 @@ private:
     void renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
     void renderWireframe(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
     void renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
+    void drawSelection(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
 
     void drawSkyBox(int shaderId, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
     void ambientPass(vortex::ShaderLoop &theRenderingLoop, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix, const glm::mat4x4 &viewToWorldMatrix);
@@ -116,8 +130,6 @@ private:
     vortex::MaterialPropertyFilter *mAmbientAndNormalFilter;
     vortex::MaterialPropertyFilter *mDepthFilter;
 
-
-
 #ifdef STATISTIQUES
     unsigned int queryRenderID[4];
 #endif
@@ -128,29 +140,39 @@ private:
     vortex::ShaderLoop mMainDrawLoop;
     vortex::ShaderLoop mAmbientAndNormalLoop;
 
-
     /*
      ***********************************
      * PICKING
      ***********************************
      */
 
-    class MeshVectorBuilder : public vortex::SceneGraph::VisitorOperation {
-    public:
-        typedef std::vector<vortex::Mesh::MeshPtr> MeshVector;
+    typedef std::map<vortex::PickingState, vortex::Mesh::MeshPtr> PickingLoop;
+    PickingLoop mPickingLoop;
 
-        MeshVectorBuilder(vortex::SceneGraph *sceneGraph, MeshVector *meshes);
-        void operator()(vortex::SceneGraph::Node *theNode);
+    class PickingLoopBuilder : public vortex::SceneGraph::VisitorOperation {
+    public:
+        PickingLoopBuilder(PickingLoop *loop, vortex::ShaderProgram *shader, int *id);
+        void operator()(vortex::SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
     private:
-        vortex::SceneGraph *mSceneGraph;
-        MeshVector *mMeshes;
+        PickingLoop *mLoop;
+        vortex::ShaderProgram *mShader;
+        int *mId;
     };
 
-    MeshVectorBuilder::MeshVector mPickingMeshes;
 
-    glm::vec3 idToColor(int id);
-    int colorToId(glm::vec3 color);
+    class GetLeafMeshNodeSelected : public vortex::SceneGraph::VisitorOperation {
+    public:
+        GetLeafMeshNodeSelected(vortex::SceneGraph::LeafMeshNode **node, int *meshI);
+        void operator()(vortex::SceneGraph::Node *theNode);
+    private:
+        vortex::SceneGraph::LeafMeshNode **mNode;
+        int *mMeshI;
+    };
 
+    /* On conserve les pointeurs permettant d'accéder aux informations sur l'objet cliqué
+     * ce qui permet de ne plus avoir à parcourir le graphe */
+    vortex::SceneGraph::LeafMeshNode *mNodePicked;
+    int mMeshI;
 };
 
 #endif // MATRENDERER_H

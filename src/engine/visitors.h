@@ -58,7 +58,13 @@ public:
  */
 class BBoxRenderer : public SceneGraph::VisitorOperation {
 public:
+    BBoxRenderer(Mesh::MeshPtr mesh, glm::vec4 color, ShaderProgram *program) : mProgram(program), mColor(color), mMesh(mesh) {}
     void operator()(SceneGraph::Node *theNode, const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix);
+
+private:
+    ShaderProgram *mProgram;
+    glm::vec4 mColor;
+    Mesh::MeshPtr mMesh;
 };
 
 /**

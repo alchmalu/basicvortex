@@ -27,12 +27,13 @@ public:
         mGLWidget = widget;
     }
 
-    class GetMaterialPicked : public vortex::SceneGraph::VisitorOperation {
+    class GetMaterialByMeshName : public vortex::SceneGraph::VisitorOperation {
         public:
-            GetMaterialPicked(vortex::Material **mMaterial);
+            GetMaterialByMeshName(vortex::Material **mMaterial, const std::string &meshName);
             void operator()(vortex::SceneGraph::Node *theNode);
         private:
             vortex::Material **mMaterialPicked;
+            std::string mMeshName;
     };
 
 signals:
@@ -77,7 +78,6 @@ private slots:
 private:
     OpenGLWidget *mGLWidget;
     MyRenderer *mRenderer;
-    vortex::Material *mMatPicked;
     QColorDialog mColorPicker;
     Ui::MaterialEditor *ui;
 

@@ -5,7 +5,6 @@
 
 #include "mesh.h"
 
-
 namespace vortex {
 
 Mesh::Mesh(std::string name) :
@@ -128,9 +127,6 @@ void Mesh::draw()
     GLint count = mNumIndices;
     void *indices = NULL;
     glAssert(glDrawElements(mode, count, type, indices));
-    if (this->mSelected)
-        drawBbox(glm::mat4(), glm::mat4());
-
 }
 
 void Mesh::drawPatch()
@@ -162,35 +158,23 @@ void Mesh::drawLines()
 
 }
 
-
-void Mesh::drawBbox(glm::mat4x4 modelViewMatrix, glm::mat4x4 projectionMatrix)
+void Mesh::drawLineStrip()
 {
-    glm::vec3 min = mBbox.getMin();
-    glm::vec3 max = mBbox.getMax();
+    glAssert(glBindVertexArray(mVertexArrayObject));
+    // draw count elements in indices
+    GLenum type = GL_UNSIGNED_INT;
+    GLenum mode = GL_LINE_STRIP;
+    GLint count = mNumIndices;
+    void *indices = NULL;
+    glAssert(glDrawElements(mode, count, type, indices));
 
-    ///@todo : use retained mode
+}
 
-        glBegin(GL_LINE_STRIP);
-        glVertex3f( min[0], min[1], min[2] );
-        glVertex3f( min[0], min[1], max[2] );
-        glVertex3f( min[0], max[1], max[2] );
-        glVertex3f( min[0], max[1], min[2] );
-        glVertex3f( min[0], min[1], min[2] );
-        glVertex3f( max[0], min[1], min[2] );
-        glVertex3f( max[0], min[1], max[2] );
-        glVertex3f( max[0], max[1], max[2] );
-        glVertex3f( max[0], max[1], min[2] );
-        glVertex3f( max[0], min[1], min[2] );
-        glEnd();
-
-        glBegin(GL_LINE_STRIP);
-        glVertex3f( min[0], min[1], max[2] );
-        glVertex3f( max[0], min[1], max[2] );
-        glVertex3f( max[0], max[1], max[2] );
-        glVertex3f( min[0], max[1], max[2] );
-        glVertex3f( min[0], max[1], min[2] );
-        glVertex3f( max[0], max[1], min[2] );
-        glEnd();
+void Mesh::drawBbox()
+{
+    Mesh *bb = BBoxMeshBuilder().build("bbox", mBbox);
+    bb->init();
+    bb->drawLineStrip();
 }
 
 void Mesh::drawSelectedFace()
