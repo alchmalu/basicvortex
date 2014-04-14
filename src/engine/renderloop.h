@@ -87,7 +87,6 @@ private:
     ShaderProgram *mProgram;
 };
 
-<<<<<<< HEAD
 /**
  *  @ingroup RenderingLoopsKeys
  *  @todo Write full documentation of this abstraction
@@ -113,8 +112,6 @@ private:
     ShaderProgram *mProgram;
 };
 
-=======
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
 /**
  *  Generic vector (based on std::vector) with a draw method. Drawing a vector results in drawing all its elements.
  *  @ingroup RenderingLoops

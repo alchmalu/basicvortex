@@ -141,11 +141,7 @@ void MyRenderer::renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat
 
     // render ambient and normal
     ambientPass(mAmbientAndNormalLoop, modelViewMatrix, projectionMatrix, viewToWorldMatrix);
-<<<<<<< HEAD
-    // dessine le rendu de la selection d'un mesh
     drawSelection(modelViewMatrix, projectionMatrix);
-=======
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
 
     // setup per light rendering : blend each pass onto the previous one
     glAssert(glDrawBuffers(1, bufs));
@@ -360,14 +356,6 @@ void MyRenderer::initRessources(AssetManager *assetManager){
         buildRenderingLoops();
     }
 
-<<<<<<< HEAD
-=======
-    /*
-     * Image post-processing shaders
-     */
-    mDisplayShaderId = assetManager->addShaderProgram("display");
-    mPickingShaderId = assetManager->addShaderProgram("fill");
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
     mRenderOperators.push_back(new FilledRenderOperator(this));
     mRenderOperators.push_back(new WireRenderOperator(this));
 
@@ -384,10 +372,7 @@ void MyRenderer::initRessources(AssetManager *assetManager){
 void MyRenderer::buildRenderingLoops(){
     mMainDrawLoop.clear();
     mAmbientAndNormalLoop.clear();
-<<<<<<< HEAD
     mPickingLoop.clear();
-=======
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
 
     if (mRenderMode == 0) { // Fill mode
         // Light loop builder
@@ -444,7 +429,6 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
     glDepthMask(GL_TRUE);
 }
 
-<<<<<<< HEAD
 void MyRenderer::drawSelection(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {
     if (mNodePicked) {
         ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
@@ -457,43 +441,6 @@ void MyRenderer::drawSelection(const glm::mat4x4 &modelViewMatrix, const glm::ma
 }
 
 void MyRenderer::pick(int x, int y){
-=======
-void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {
-    ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
-
-    /* Get all meshes, each mesh have an unique ID witch is his position in the vector */
-    mPickingMeshes.clear();
-    MeshVectorBuilder meshVectorBuilder(mSceneManager->sceneGraph(), &mPickingMeshes);
-    SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), meshVectorBuilder);
-    renderPassesVisitor.go();
-
-    // Bind the FBO
-    mFbo->useAsTarget(mWidth, mHeight);
-    GLuint attachments[2] = {GL_COLOR_ATTACHMENT2};
-    glAssert(glDrawBuffers(1, attachments));
-    glAssert(glClearColor(0., 0., 0., 1.));
-    glAssert(glClearDepth(1.0));
-    glAssert(glDepthFunc(GL_LESS));
-    glAssert(glDisable(GL_BLEND));
-    mFbo->clear(FBO::ALL);// to clear all attached texture
-
-    // Bind picking shader
-    pickingShader->bind();
-
-    // For vertex shader
-    glm::mat4x4 MVP = projectionMatrix * modelViewMatrix;
-    pickingShader->setUniform("MVP", MVP);
-
-    for (int i = 0 ; i < mPickingMeshes.size() ; i++) {
-        pickingShader->setUniform("color", glm::vec4(idToColor(i+1), 1)); // Unique color (flat) from id for fragment chader
-        mPickingMeshes[i]->draw();
-    }
-
-    glDepthMask(GL_TRUE);
-}
-
-Mesh::MeshPtr MyRenderer::pick(int x, int y){
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
     GLubyte data[4];
     GLint viewport[4];
 
@@ -503,7 +450,6 @@ Mesh::MeshPtr MyRenderer::pick(int x, int y){
     // Transformer les coordonnées souris en coordonnées framebuffer
     glGetIntegerv(GL_VIEWPORT, viewport);
 
-<<<<<<< HEAD
     // Lecture de la couleur du pixel
     glAssert(glReadPixels(x, viewport[3]-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data));
     glm::vec3 color(data[0], data[1], data[2]);
@@ -528,35 +474,12 @@ Mesh::MeshPtr MyRenderer::pick(int x, int y){
         SceneGraph::PostOrderVisitor visitor(getScene()->sceneGraph(), get);
         visitor.go();
     }
-=======
-    glAssert(glReadPixels(x, viewport[3]-y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data));
-
-    // DEBUG PICKING
-    glm::vec3 color(data[0], data[1], data[2]);
-    //std::cerr << "Texel = " << color.x << " " << color.y << " " << color.z << std::endl;
-
-    for (int i = 0 ; i < mPickingMeshes.size() ; i++)
-        mPickingMeshes[i]->setSelected(false);
-
-    if (color.x == 0 && color.y == 0 && color.z == 0)
-        return NULL;
-    else {
-        Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(color)-1];
-        meshPicked->setSelected(true);
-        return meshPicked;
-    }
-
-    /* Mesh::MeshPtr meshPicked = mPickingMeshes[colorToId(int(data[0]),int(data[1]),int(data[2]))];
-    std::cerr << "Mesh = " << meshPicked->name() << std::endl;
-    meshPicked->setSelected(true);*/
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
 }
 
 void MyRenderer::reloadShaders(){
     buildRenderingLoops();
 }
 
-<<<<<<< HEAD
 MyRenderer::PickingLoopBuilder::PickingLoopBuilder(PickingLoop *loop, ShaderProgram *shader, int *id) : mLoop(loop), mShader(shader), mId(id) {
 }
 
@@ -584,7 +507,10 @@ void MyRenderer::GetLeafMeshNodeSelected::operator()(SceneGraph::Node *theNode) 
                 *mNode = leafNode;
                 *mMeshI = i;
             }
-=======
+        }
+    }
+}
+
 glm::vec3 MyRenderer::idToColor(int id) {
     float r = ((id / 65536) % 256) / 255.0;
     float g = ((id / 256) % 256) / 255.0;
@@ -597,21 +523,3 @@ int MyRenderer::colorToId(glm::vec3 color) {
     return color.x * 65536 + color.y * 256 + color.z;
 }
 
-MyRenderer::MeshVectorBuilder::MeshVectorBuilder(SceneGraph *sceneGraph, MyRenderer::MeshVectorBuilder::MeshVector *meshes) : mSceneGraph(sceneGraph), mMeshes(meshes) {
-}
-
-void MyRenderer::MeshVectorBuilder::operator ()(SceneGraph::Node *theNode) {
-    if (theNode->isLeaf()) {
-        SceneGraph::LeafMeshNode *leafNode = static_cast<SceneGraph::LeafMeshNode *>(theNode);
-        for (int i = 0; i < leafNode->nMeshes(); ++i) {
-            if ((*leafNode)[i])
-                (*mMeshes).push_back((*leafNode)[i]);
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
-        }
-    }
-}
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
