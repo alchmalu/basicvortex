@@ -127,6 +127,9 @@ void Mesh::draw()
     GLint count = mNumIndices;
     void *indices = NULL;
     glAssert(glDrawElements(mode, count, type, indices));
+    if (this->mSelected)
+        drawBbox(glm::mat4(), glm::mat4());
+
 }
 
 void Mesh::drawPatch()
@@ -155,11 +158,17 @@ void Mesh::drawLines()
     GLint count = mNumIndices;
     void *indices = NULL;
     glAssert(glDrawElements(mode, count, type, indices));
+<<<<<<< HEAD
+=======
+
+}
+>>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
 
 }
 
 void Mesh::drawLineStrip()
 {
+<<<<<<< HEAD
     glAssert(glBindVertexArray(mVertexArrayObject));
     // draw count elements in indices
     GLenum type = GL_UNSIGNED_INT;
@@ -175,6 +184,34 @@ void Mesh::drawBbox()
     Mesh *bb = BBoxMeshBuilder().build("bbox", mBbox);
     bb->init();
     bb->drawLineStrip();
+=======
+    glm::vec3 min = mBbox.getMin();
+    glm::vec3 max = mBbox.getMax();
+
+    ///@todo : use retained mode
+
+        glBegin(GL_LINE_STRIP);
+        glVertex3f( min[0], min[1], min[2] );
+        glVertex3f( min[0], min[1], max[2] );
+        glVertex3f( min[0], max[1], max[2] );
+        glVertex3f( min[0], max[1], min[2] );
+        glVertex3f( min[0], min[1], min[2] );
+        glVertex3f( max[0], min[1], min[2] );
+        glVertex3f( max[0], min[1], max[2] );
+        glVertex3f( max[0], max[1], max[2] );
+        glVertex3f( max[0], max[1], min[2] );
+        glVertex3f( max[0], min[1], min[2] );
+        glEnd();
+
+        glBegin(GL_LINE_STRIP);
+        glVertex3f( min[0], min[1], max[2] );
+        glVertex3f( max[0], min[1], max[2] );
+        glVertex3f( max[0], max[1], max[2] );
+        glVertex3f( min[0], max[1], max[2] );
+        glVertex3f( min[0], max[1], min[2] );
+        glVertex3f( max[0], max[1], min[2] );
+        glEnd();
+>>>>>>> 0a49773ec341312329eebc1d2aff39cd6d5a0756
 }
 
 void Mesh::drawSelectedFace()
