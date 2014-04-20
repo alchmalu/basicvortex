@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>141</width>
-    <height>136</height>
+    <width>273</width>
+    <height>202</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,17 +21,84 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="labelAmbient">
-     <property name="text">
-      <string>Ambient :</string>
+   <item row="4" column="1">
+    <widget class="QDoubleSpinBox" name="spinBoxShininess">
+     <property name="minimumSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="labelShininess">
+   <item row="5" column="0">
+    <widget class="QComboBox" name="comboBoxTexture"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QPushButton" name="diffuseButton">
+     <property name="minimumSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
      <property name="text">
-      <string>Shininess :</string>
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="specularButton">
+     <property name="minimumSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
@@ -42,22 +109,45 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QPushButton" name="diffuseButton">
+   <item row="2" column="0">
+    <widget class="QLabel" name="labelAmbient">
+     <property name="text">
+      <string>Ambient :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="labelShininess">
+     <property name="text">
+      <string>Shininess :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QPushButton" name="textureButton">
      <property name="minimumSize">
       <size>
-       <width>25</width>
-       <height>25</height>
+       <width>60</width>
+       <height>60</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
+       <height>60</height>
       </size>
      </property>
      <property name="autoFillBackground">
       <bool>true</bool>
      </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>60</width>
+       <height>60</height>
+      </size>
      </property>
      <property name="flat">
       <bool>true</bool>
@@ -68,7 +158,13 @@
     <widget class="QPushButton" name="ambientButton">
      <property name="minimumSize">
       <size>
-       <width>0</width>
+       <width>60</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>60</width>
        <height>25</height>
       </size>
      </property>
@@ -81,11 +177,14 @@
      <property name="autoFillBackground">
       <bool>true</bool>
      </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>60</width>
+       <height>25</height>
+      </size>
      </property>
      <property name="autoDefault">
       <bool>true</bool>
@@ -97,31 +196,6 @@
       <bool>true</bool>
      </property>
     </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QPushButton" name="specularButton">
-     <property name="minimumSize">
-      <size>
-       <width>25</width>
-       <height>25</height>
-      </size>
-     </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
-     <property name="styleSheet">
-      <string notr="true"/>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="flat">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QDoubleSpinBox" name="spinBoxShininess"/>
    </item>
   </layout>
  </widget>

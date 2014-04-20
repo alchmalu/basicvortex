@@ -281,7 +281,6 @@ void ShaderBuilder::operator()(SceneGraph::Node *theNode)
                         if (mPropertiesFilter->match(nodeMaterial->getTextureSemantic(j)) )
                             nodeShaderConfiguration.addProperty(nodeMaterial->getTextureSemanticString(j));
                     } else {
-                        std::cout << nodeMaterial->getTextureSemanticString(j) << std::endl;
                         nodeShaderConfiguration.addProperty(nodeMaterial->getTextureSemanticString(j));
                     }
                 }

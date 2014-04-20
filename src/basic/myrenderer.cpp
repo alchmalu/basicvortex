@@ -141,7 +141,6 @@ void MyRenderer::renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat
 
     // render ambient and normal
     ambientPass(mAmbientAndNormalLoop, modelViewMatrix, projectionMatrix, viewToWorldMatrix);
-    drawSelection(modelViewMatrix, projectionMatrix);
 
     // setup per light rendering : blend each pass onto the previous one
     glAssert(glDrawBuffers(1, bufs));
@@ -153,11 +152,14 @@ void MyRenderer::renderFilled(const glm::mat4x4 &modelViewMatrix, const glm::mat
     // render for each light
     lightsPass(mMainDrawLoop, modelViewMatrix, projectionMatrix, viewToWorldMatrix);
 
+
+
     // restore parameter
     glAssert( glDisable(GL_BLEND) );
     glAssert( glDepthFunc(GL_LESS) );
     glDepthMask(GL_TRUE);
 
+    drawSelection(modelViewMatrix, projectionMatrix);
 
 
 #ifdef STATISTIQUES
@@ -431,6 +433,12 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
 
 void MyRenderer::drawSelection(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &projectionMatrix) {
     if (mNodePicked) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glLineWidth(3);
+
         ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
         pickingShader->bind();
 

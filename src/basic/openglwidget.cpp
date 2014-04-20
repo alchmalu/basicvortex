@@ -361,7 +361,7 @@ void OpenGLWidget::mousePressEvent ( QMouseEvent * e ) {
 
     if( (e->button() & Qt::LeftButton) && (e->modifiers() & Qt::ControlModifier) ) {
         mRenderer->pick(e->x(), e->y());
-        mMaterialEditor->updateView();
+        mMaterialEditor->initView();
     }
 }
 
@@ -393,7 +393,7 @@ void OpenGLWidget::showRenderControl(){
 
 void OpenGLWidget::toggleMaterialEditor() {
     if (!mMaterialEditor->isVisible()) {
-        mMaterialEditor->updateView();
+        mMaterialEditor->initView();
         mMaterialEditor->show();
     } else
         mMaterialEditor->hide();

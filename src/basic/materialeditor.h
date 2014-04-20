@@ -27,59 +27,34 @@ public:
         mGLWidget = widget;
     }
 
-signals:
-    void colorSelected(const QColor &color);
+    void initView();
 
-public slots:
-    void updateView();
+signals:
+    void colorSelected(const EColor &color);
 
 private slots:
-    void updateModel();
-
-    void updateSelectedColor(const QColor &color) {
-        setColor(mColorSelected, color);
-        updateModel();
-    }
-
-    void updateShininess(double value) {
-        setShininess(value);
-        updateModel();
-    }
-
-    void selectDiffuseColor() {
-        mColorSelected = DIFFUSE;
-        emit(colorSelected(mColorSelected));
-    }
-
-    void selectSpecularColor() {
-        mColorSelected = SPECULAR;
-        emit(colorSelected(mColorSelected));
-    }
-
-    void selectAmbientColor() {
-        mColorSelected = AMBIENT;
-        emit(colorSelected(mColorSelected));
-    }
-
-    void openColorPicker() {
-        mColorPicker.show();
-        mColorPicker.setCurrentColor(mColors[mColorSelected]);
-    }
+    void updateSelectedColor(const QColor &color);
+    void updateShininess(double value);
+    void updateTexture(int index);
+    void selectDiffuseColor();
+    void selectSpecularColor();
+    void selectAmbientColor();
+    void openColorPicker(const EColor &color);
 
 private:
     OpenGLWidget *mGLWidget;
     MyRenderer *mRenderer;
+    vortex::Material *material;
     QColorDialog mColorPicker;
     Ui::MaterialEditor *ui;
 
-    std::map<EColor, QPushButton*> mColorButtons;
-
     EColor mColorSelected;
-    QColor mColors[NUM_COLORS];
-    double mShininess;
+    std::map<EColor, QColor> mColors;
 
-    void setColor(EColor color, const QColor &value);
-    void setShininess(double value);
+    void specularChanged();
+    void diffuseChanged();
+    void ambientChanged();
+    void shininessChanged();
 
     QColor vec3ToQColor(const glm::vec3& vec3) {
         return QColor::fromRgbF(vec3.x, vec3.y, vec3.z);

@@ -143,22 +143,6 @@ public:
 };
 
 /**
- *  Specialisation of Drawable pointer
- *  @ingroup RenderingLoops
- */
-class DrawableMeshPtr : public Drawable {
-public:
-    DrawableMeshPtr() : Drawable(), mMesh(NULL) {}
-    DrawableMeshPtr(Mesh::MeshPtr mesh) : Drawable(), mMesh(mesh) {}
-
-    void draw() {
-        mMesh->draw();
-    }
-
-    Mesh::MeshPtr mMesh;
-};
-
-/**
  *  Generic map (based on std::map) with a draw method. Drawing a map results in drawing all its elements.
  *  A map may be drawn with or without parameters.
  *  ACTUAL LIMITATION : when rendering loops are nested, only the outer loop may have parameters
