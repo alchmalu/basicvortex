@@ -17,11 +17,9 @@ MaterialEditor::MaterialEditor(MyRenderer *renderer, QWidget *parent) :
 
     connect(ui->spinBoxShininess, SIGNAL(valueChanged(double)), this, SLOT(updateShininess(double)));
 
-    connect(ui->diffuseButton, SIGNAL(clicked()), this, SLOT(selectDiffuseColor()));
-    connect(ui->ambientButton, SIGNAL(clicked()), this, SLOT(selectAmbientColor()));
-    connect(ui->specularButton, SIGNAL(clicked()), this, SLOT(selectSpecularColor()));
-
-    connect(this, SIGNAL(colorSelected(EColor)), this, SLOT(openColorPicker(EColor)));
+    connect(ui->diffuseButton, SIGNAL(clicked()), this, SLOT(pickDiffuseColor()));
+    connect(ui->ambientButton, SIGNAL(clicked()), this, SLOT(pickAmbientColor()));
+    connect(ui->specularButton, SIGNAL(clicked()), this, SLOT(pickSpecularColor()));
     connect(&mColorPicker, SIGNAL(colorSelected(QColor)), this, SLOT(updateSelectedColor(QColor)));
 
     initView();
@@ -33,10 +31,11 @@ MaterialEditor::~MaterialEditor() {
 }
 
 void MaterialEditor::initView() {
-    material = mRenderer->getMaterialPicked();
+    material = mRenderer->getMaterialPicked(); // On mémorise le modele
 
     ui->comboBoxTexture->clear();
 
+    // Si un material existe on met à jour la fenetre sinon on la "desactive"
     if (material) {
         ui->ambientButton->setEnabled(true);
         ui->diffuseButton->setEnabled(true);
@@ -63,6 +62,7 @@ void MaterialEditor::initView() {
         ui->spinBoxShininess->setValue(0);
     }
 
+    // Grise la combo box des textures si aucune n'est définie
     if (ui->comboBoxTexture->count() > 0) {
         ui->comboBoxTexture->setEnabled(true);
         ui->textureButton->setEnabled(true);
@@ -126,24 +126,24 @@ void MaterialEditor::updateTexture(int index) {
     }
 }
 
-void MaterialEditor::selectDiffuseColor() {
+void MaterialEditor::pickDiffuseColor() {
     mColorSelected = DIFFUSE;
-    emit(colorSelected(mColorSelected));
+    openColorPicker();
 }
 
-void MaterialEditor::selectSpecularColor() {
+void MaterialEditor::pickSpecularColor() {
     mColorSelected = SPECULAR;
-    emit(colorSelected(mColorSelected));
+    openColorPicker();
 }
 
-void MaterialEditor::selectAmbientColor() {
+void MaterialEditor::pickAmbientColor() {
     mColorSelected = AMBIENT;
-    emit(colorSelected(mColorSelected));
+    openColorPicker();
 }
 
-void MaterialEditor::openColorPicker(const EColor &color) {
+void MaterialEditor::openColorPicker() {
     mColorPicker.show();
-    mColorPicker.setCurrentColor(mColors[color]);
+    mColorPicker.setCurrentColor(mColors[mColorSelected]);
 }
 
 void MaterialEditor::specularChanged() {

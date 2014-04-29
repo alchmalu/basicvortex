@@ -89,7 +89,7 @@ private:
 
 /**
  *  @ingroup RenderingLoopsKeys
- *  @todo Write full documentation of this abstraction
+ *  @brief Permet d'effectuer un rendu par coloration unique de chaque mesh
  */
 class PickingState : public Bindable {
 public:

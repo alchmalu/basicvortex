@@ -66,6 +66,11 @@ public:
         return mTextures[sourceTexture];
     }
 
+
+    /**
+     * @brief getMeshPicked
+     * @return Le mesh selectionné sinon la valeur NULL
+     */
     vortex::Mesh::MeshPtr getMeshPicked() {
         if (mNodePicked)
             return (*mNodePicked)[mMeshI];
@@ -73,6 +78,10 @@ public:
             return NULL;
     }
 
+    /**
+     * @brief getMaterialPicked
+     * @return Le materiau du mesh selectionné sinon la valeur NULL
+     */
     vortex::Material* getMaterialPicked() {
         if (mNodePicked)
             return mNodePicked->getRenderState(mMeshI)->getMaterial();
@@ -146,9 +155,13 @@ private:
      ***********************************
      */
 
+    /* Boucle de rendu associée au picking */
     typedef std::map<vortex::PickingState, vortex::Mesh::MeshPtr> PickingLoop;
     PickingLoop mPickingLoop;
 
+    /**
+     * @brief Classe permettant la construction de la boucle de rendu associé au picking
+     */
     class PickingLoopBuilder : public vortex::SceneGraph::VisitorOperation {
     public:
         PickingLoopBuilder(PickingLoop *loop, vortex::ShaderProgram *shader, int *id);
@@ -159,6 +172,10 @@ private:
         int *mId;
     };
 
+    /**
+     * @brief Cette classe permet tout simplement de retrouver le noeud de l'objet selectionné
+     * grace à l'attribut "selected" d'un Mesh
+     */
     class GetLeafMeshNodeSelected : public vortex::SceneGraph::VisitorOperation {
     public:
         GetLeafMeshNodeSelected(vortex::SceneGraph::LeafMeshNode **node, int *meshI);

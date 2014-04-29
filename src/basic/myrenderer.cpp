@@ -35,6 +35,7 @@ MyRenderer::MyRenderer(SceneManager *sceneManager, int width, int height) : Rend
     glAssert( glDrawBuffer(GL_BACK) );
     glAssert( glReadBuffer(GL_BACK) );
 
+    //Aucun objet selectionné
     mNodePicked = NULL;
     mMeshI = -1;
 
@@ -278,7 +279,7 @@ void MyRenderer::render(const glm::mat4x4 &modelViewMatrix, const glm::mat4x4 &p
         return;
     {
         (*(mRenderOperators[mRenderMode]))(modelViewMatrix, projectionMatrix);
-        renderPicking(modelViewMatrix, projectionMatrix);
+        renderPicking(modelViewMatrix, projectionMatrix); // Passe de picking
         showTexture(mDisplayTextureId);
     }
 }
@@ -400,7 +401,7 @@ void MyRenderer::buildRenderingLoops(){
     }
 
     {
-        /* Get all meshes, each mesh have an unique ID witch is his position in the vector */
+        // Get all meshes, each mesh have an unique ID witch is his position in the vector
         int id = 1;
         ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
         PickingLoopBuilder pickingPassesVisitor(&mPickingLoop, pickingShader, &id);
@@ -414,7 +415,7 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
 
     // Bind the FBO
     mFbo->useAsTarget(mWidth, mHeight);
-    GLuint attachments[1] = {GL_COLOR_ATTACHMENT2};
+    GLuint attachments[1] = {GL_COLOR_ATTACHMENT2}; // On rend la passe de rendu du picking dans le buffer 2
     glAssert(glDrawBuffers(1, attachments));
     glAssert(glClearColor(0., 0., 0., 1.));
     glAssert(glClearDepth(1.0));
@@ -422,6 +423,7 @@ void MyRenderer::renderPicking(const glm::mat4x4 &modelViewMatrix, const glm::ma
     glAssert(glDisable(GL_BLEND));
     mFbo->clear(FBO::ALL);// to clear all attached texture
 
+    // Simple boucle de rendu
     pickingShader->bind();
     for(PickingLoop::iterator it = mPickingLoop.begin() ; it != mPickingLoop.end() ; ++it) {
         it->first.bind(modelViewMatrix, projectionMatrix);
@@ -442,6 +444,7 @@ void MyRenderer::drawSelection(const glm::mat4x4 &modelViewMatrix, const glm::ma
         ShaderProgram *pickingShader = mSceneManager->getAsset()->getShaderProgram(mPickingShaderId);
         pickingShader->bind();
 
+        // Utilise directement un Visitor pour dessiner la bbox du mesh voulu
         BBoxRenderer bboxPassesVisitor(getMeshPicked(), glm::vec4(0,0,0,1), pickingShader);
         SceneGraph::PostOrderVisitor renderPassesVisitor(mSceneManager->sceneGraph(), bboxPassesVisitor);
         renderPassesVisitor.go(modelViewMatrix, projectionMatrix);
